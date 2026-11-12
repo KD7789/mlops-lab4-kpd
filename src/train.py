@@ -41,6 +41,7 @@ PIP_REQUIREMENTS = [
 ]
 
 warnings.filterwarnings("ignore", message=".*Inferred schema contains integer column.*")
+warnings.filterwarnings("ignore", message=".*dataset source can be interpreted in multiple ways.*")
 
 
 def validation_plot(y_true, y_pred, hours):
