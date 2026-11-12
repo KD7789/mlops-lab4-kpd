@@ -1,8 +1,8 @@
 """Send requests to the champion model served by `mlflow models serve`.
 
 1. A valid request with five test-set hours, printed next to the actual rentals.
-2. Two bad requests (a missing column, and text in a numeric column). The model's
-   signature makes the server reject both with HTTP 400.
+2. Two bad requests (a missing column, and text in a numeric column). The server
+   checks requests against the model's signature and rejects both with HTTP 400.
 
 Usage, with the model server running on port 5002:
     python -m src.predict_client
@@ -26,6 +26,13 @@ def post(frame):
     return requests.post(SERVING_URL, json=payload, timeout=30)
 
 
+def predict(frame):
+    """Return the served model's predictions for a DataFrame of features."""
+    response = post(frame)
+    response.raise_for_status()
+    return response.json()["predictions"]
+
+
 def main():
     mlflow.set_tracking_uri(config.TRACKING_URI)
     champion = MlflowClient().get_model_version_by_alias(config.MODEL_NAME, config.CHAMPION_ALIAS)
@@ -40,9 +47,10 @@ def main():
     except requests.ConnectionError:
         raise SystemExit(f"No model server at {SERVING_URL}. Start it with `mlflow models serve` first.")
     response.raise_for_status()
-    result = sample[["dteday", "hr", config.TARGET]].assign(predicted=response.json()["predictions"])
+    predictions = [round(value, 1) for value in response.json()["predictions"]]
+    result = sample[["dteday", "hr", config.TARGET]].assign(predicted=predictions)
     print(f"\nValid request -> HTTP {response.status_code}")
-    print(result.round(1).to_string(index=False))
+    print(result.to_string(index=False))
 
     bad_requests = {
         "missing 'hr' column": X.drop(columns=["hr"]),
