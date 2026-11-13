@@ -1,8 +1,8 @@
 """Send requests to the champion model served by `mlflow models serve`.
 
 1. A valid request with five test-set hours, printed next to the actual rentals.
-2. Two bad requests (a missing column, and text in a numeric column). The server
-   checks requests against the model's signature and rejects both with HTTP 400.
+2. Two bad requests (a missing column, and text in a numeric column), which the
+   server rejects with HTTP 400.
 
 Usage, with the model server running on port 5002:
     python -m src.predict_client
